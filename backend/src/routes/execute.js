@@ -3,6 +3,10 @@ const axios = require("axios");
 
 const router = express.Router();
 
+const EXECUTION_URL = process.env.EXECUTION_URL || "https://exec.vaibh.me";
+const EXECUTION_SECRET =
+  process.env.EXECUTION_SECRET || "super_long_random_string";
+
 router.post("/", async (req, res) => {
   const { language, code, stdin } = req.body;
 
@@ -12,11 +16,11 @@ router.post("/", async (req, res) => {
 
   try {
     const response = await axios.post(
-      process.env.EXECUTION_URL + "/execute",
+      EXECUTION_URL + "/execute",
       { language, code, stdin },
       {
         headers: {
-          Authorization: `Bearer ${process.env.EXECUTION_SECRET}`,
+          Authorization: `Bearer ${EXECUTION_SECRET}`,
         },
         timeout: 5000,
       }
