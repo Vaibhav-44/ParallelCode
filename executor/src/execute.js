@@ -1,27 +1,21 @@
-const runPython = require("./runners/python");
+const runners = require("./runners");
 
-module.exports = async function execute(req, res) {
-  const auth = req.headers.authorization;
-
-  if (!auth || auth !== `Bearer ${process.env.EXECUTION_SECRET}`) {
+module.exports = async (req, res) => {
+  if (req.headers.authorization !== `Bearer ${process.env.EXECUTION_SECRET}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { language, code, stdin } = req.body;
+  const { language, code } = req.body;
+  const runner = runners[language];
 
-  if (language !== "python") {
-    return res.status(400).json({ error: "Unsupported language" });
-  }
-
-  if (!code || typeof code !== "string") {
-    return res.status(400).json({ error: "Invalid code" });
+  if (!runner) {
+    return res.status(400).s.json({ error: "Unsupported language" });
   }
 
   try {
-    const result = await runPython(code, stdin || "");
-    res.json(result);
-  } catch (err) {
-    console.error(err);
+    res.json(await runner(code));
+  } catch (e) {
+    console.error(e);
     res.status(500).json({ error: "Execution failed" });
   }
 };
