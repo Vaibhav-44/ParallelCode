@@ -113,34 +113,6 @@ const Editor = ({ socketRef, roomId, onCodeChange }) => {
   const editorTheme = useRecoilValue(cmtheme);
 
   useEffect(() => {
-    async function init() {
-      editorRef.current = Codemirror.fromTextArea(
-        document.getElementById("realtimeEditor"),
-        {
-          mode: { name: lang },
-          theme: editorTheme,
-          autoCloseTags: true,
-          autoCloseBrackets: true,
-          lineNumbers: true,
-          allowDropFileTypes: true,
-          search: true,
-          lineWrapping: true,
-        }
-      );
-
-      editorRef.current.on("change", (instance, changes) => {
-        const { origin } = changes;
-        const code = instance.getValue();
-        console.log("main:editor: ", code);
-        onCodeChange(code);
-        if (origin !== "setValue") {
-          socketRef.current.emit(ACTIONS.CODE_CHANGE, {
-            roomId,
-            code,
-          });
-        }
-      });
-    }
     init();
   }, [lang]);
 
@@ -163,6 +135,35 @@ const Editor = ({ socketRef, roomId, onCodeChange }) => {
       socketRef.current.off(ACTIONS.CODE_CHANGE);
     };
   }, [socketRef.current]);
+
+  async function init() {
+    editorRef.current = Codemirror.fromTextArea(
+      document.getElementById("realtimeEditor"),
+      {
+        mode: { name: lang },
+        theme: editorTheme,
+        autoCloseTags: true,
+        autoCloseBrackets: true,
+        lineNumbers: true,
+        allowDropFileTypes: true,
+        search: true,
+        lineWrapping: true,
+      }
+    );
+
+    editorRef.current.on("change", (instance, changes) => {
+      const { origin } = changes;
+      const code = instance.getValue();
+      console.log("main:editor: ", code);
+      onCodeChange(code);
+      if (origin !== "setValue") {
+        socketRef.current.emit(ACTIONS.CODE_CHANGE, {
+          roomId,
+          code,
+        });
+      }
+    });
+  }
 
   return <textarea id="realtimeEditor"></textarea>;
 };
