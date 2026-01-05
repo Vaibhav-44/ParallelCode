@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { language, cmtheme } from "../../src/atoms";
 import { useRecoilValue } from "recoil";
 import ACTIONS from "../actions/Actions";
@@ -112,31 +112,7 @@ const Editor = ({ socketRef, roomId, onCodeChange }) => {
   const lang = useRecoilValue(language);
   const editorTheme = useRecoilValue(cmtheme);
 
-  useEffect(() => {
-    init();
-  }, [lang]);
-
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.setOption("theme", editorTheme);
-    }
-  }, [editorTheme]);
-
-  useEffect(() => {
-    if (socketRef.current) {
-      socketRef.current.on(ACTIONS.CODE_CHANGE, ({ code }) => {
-        if (code !== null) {
-          editorRef.current.setValue(code);
-        }
-      });
-    }
-
-    return () => {
-      socketRef.current.off(ACTIONS.CODE_CHANGE);
-    };
-  }, [socketRef.current]);
-
-  async function init() {
+  const init = useCallback(() => {
     editorRef.current = Codemirror.fromTextArea(
       document.getElementById("realtimeEditor"),
       {
@@ -156,14 +132,41 @@ const Editor = ({ socketRef, roomId, onCodeChange }) => {
       const code = instance.getValue();
       console.log("main:editor: ", code);
       onCodeChange(code);
-      if (origin !== "setValue") {
+      if (origin !== "setValue" && socketRef.current) {
         socketRef.current.emit(ACTIONS.CODE_CHANGE, {
           roomId,
           code,
         });
       }
     });
-  }
+  }, [lang, editorTheme, roomId, onCodeChange, socketRef]);
+
+  useEffect(() => {
+    init();
+  }, [init]);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.setOption("theme", editorTheme);
+    }
+  }, [editorTheme]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (socket) {
+      socket.on(ACTIONS.CODE_CHANGE, ({ code }) => {
+        if (code !== null && editorRef.current) {
+          editorRef.current.setValue(code);
+        }
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off(ACTIONS.CODE_CHANGE);
+      }
+    };
+  }, [socketRef]);
 
   return <textarea id="realtimeEditor"></textarea>;
 };

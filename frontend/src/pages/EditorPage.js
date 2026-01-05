@@ -132,7 +132,7 @@ const EditorPage = () => {
   const [clients, setClients] = useState([]);
   const [terminalOutput, setTerminalOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
-  const [stdin, setStdin] = useState('');
+  const [stdin] = useState('');
   const [isTerminalCollapsed, setIsTerminalCollapsed] = useState(false);
 
   const socketRef = useRef(null);
@@ -180,31 +180,7 @@ const EditorPage = () => {
     }
   }, [lang, stdin]);
 
-  useEffect(() => {
-    init();
-    return () => {
-      socketRef.current.off(ACTIONS.JOINED);
-      socketRef.current.off(ACTIONS.DISCONNECTED);
-      socketRef.current.disconnect();
-    };
-  }, []);
-
-  // Keyboard shortcut for running code (Ctrl+Enter)
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleRunCode();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleRunCode]);
-
-  const init = async () => {
+  const init = useCallback(async () => {
     socketRef.current = await initSocket();
     socketRef.current.on("connect_error", (err) => handleErrors(err));
     socketRef.current.on("connect_failed", (err) => handleErrors(err));
@@ -240,7 +216,33 @@ const EditorPage = () => {
         return prev.filter((client) => client.socketId !== socketId);
       });
     });
-  };
+  }, [roomId, location.state?.username, reactNavigator]);
+
+  useEffect(() => {
+    init();
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off(ACTIONS.JOINED);
+        socketRef.current.off(ACTIONS.DISCONNECTED);
+        socketRef.current.disconnect();
+      }
+    };
+  }, [init]);
+
+  // Keyboard shortcut for running code (Ctrl+Enter)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleRunCode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleRunCode]);
 
   async function copyRoomId() {
     try {
