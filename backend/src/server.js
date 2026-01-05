@@ -6,7 +6,7 @@ const executeRoute = require("./routes/execute");
 
 function createServer() {
   const app = express();
-
+  app.set("trust proxy", 1);
   app.use(cors());
   app.use(express.json({ limit: "1mb" }));
 
@@ -14,7 +14,7 @@ function createServer() {
     res.json({ status: "ok" });
   });
 
-  app.use("/api/run", executeRoute);
+  app.use("/v1/code-execution", executeRoute);
 
   const server = http.createServer(app);
 
