@@ -4,7 +4,7 @@ const ACTIONS = require("./actions/Actions");
 function setupSocket(server) {
   const io = new Server(server, {
     cors: {
-      origin: ["http://localhost:3000", "https://YOUR_FRONTEND_DOMAIN.com"],
+      origin: ["*"],
       methods: ["GET", "POST"],
       credentials: true,
     },
