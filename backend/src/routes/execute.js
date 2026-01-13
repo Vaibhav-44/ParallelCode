@@ -3,12 +3,12 @@ const axios = require("axios");
 
 const router = express.Router();
 
-const EXECUTION_URL = process.env.EXECUTION_URL || "https://exec.vaibh.me";
-const EXECUTION_SECRET =
-  process.env.EXECUTION_SECRET || "super_long_random_string";
+const EXECUTION_URL = process.env.EXECUTION_URL;
+const EXECUTION_SECRET = process.env.EXECUTION_SECRET;
 
 router.post("/", async (req, res) => {
   const { language, code, stdin } = req.body;
+  console.log("request arrived:", req.body);
 
   if (!language || !code) {
     return res.status(400).json({ error: "Invalid payload" });
@@ -25,6 +25,7 @@ router.post("/", async (req, res) => {
         timeout: 5000,
       }
     );
+    console.log("response returned:", response.data);
 
     res.json(response.data);
   } catch (err) {
