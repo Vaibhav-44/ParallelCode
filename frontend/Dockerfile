@@ -1,24 +1,26 @@
-FROM node:alpine
-
-LABEL version="1.0"
-LABEL description="Code Editor."
-
+FROM node:18-alpine AS build
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "./"]
+# Allow passing backend URL at build time. Default points to compose service name.
+ARG REACT_APP_BACKEND_URL=http://backend:5000
+ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
 
-RUN npm install --production
+# Install dependencies (use npm ci for reproducible installs)
+COPY package*.json ./
+RUN npm ci --silent
 
-COPY . .
+# Copy source and build
+COPY . ./
+RUN npm run build
 
-# Set environment variables
-ENV REACT_APP_BACKEND_URL=<your_backend_url>
-ENV SERVER_PORT=<your_server_port>
+FROM nginx:stable-alpine
 
-# Expose the necessary ports
-EXPOSE 5000
-EXPOSE 8000
-EXPOSE 3000
+# Copy built static files
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Run the application
-CMD ["npm", "run", "start:docker"]
+# Healthcheck for container orchestrators
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q --spider http://localhost/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
