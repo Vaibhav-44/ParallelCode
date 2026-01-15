@@ -109,8 +109,8 @@ This is the simplest way to get the application running.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/code-i-s.git
-    cd code-i-s
+    git clone https://github.com/Vaibhav-44/ParallelCode.git
+    cd ParallelCode
     ```
 
 2.  **Start the services using Docker Compose:**
