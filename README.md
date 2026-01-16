@@ -115,9 +115,20 @@ This is the simplest way to get the application running.
 
 2.  **Start the services using Docker Compose:**
     ```bash
-    docker-compose up -d --build
+    # Recommended (Docker Compose V2): builds and starts frontend, backend, executor
+    docker compose up -d --build
     ```
-    This command will build the images for the frontend, backend, and executor services and start them in detached mode.
+    This will build and start the `frontend`, `backend`, and `executor` services.
+
+    The repository also includes build-only services for the language runner images (defined under the `builders` profile in `docker-compose.yml`). To build those images as well use:
+    ```bash
+    # Build and start everything including language images
+    docker compose --profile builders up -d --build
+
+    # Or just build the language images without starting services
+    docker compose --profile builders build
+    ```
+    If you're using the legacy `docker-compose` binary (hyphenated), profiles may not be supported — prefer `docker compose` supplied by Docker Desktop.
 
 3.  **Access the application:**
     Open your web browser and navigate to `http://localhost:3000`.
@@ -133,12 +144,12 @@ This method requires you to run each service in a separate terminal.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/code-i-s.git
-    cd code-i-s
+    git clone https://github.com/Vaibhav-44/ParallelCode.git
+    cd ParallelCode
     ```
 
 2.  **Set up environment variables:**
-    Create a `.env` file in the `backend` directory and another one in the `executor` directory with the following content:
+    Create a `.env` file in each service directory: `backend` `executor` `frontend` with the following content:
 
     **`backend/.env`**
     ```
@@ -151,6 +162,11 @@ This method requires you to run each service in a separate terminal.
     ```
     PORT=4000
     EXECUTION_SECRET=change-me
+    ```
+
+    **`frontend/.env`**
+    ```
+    REACT_APP_BACKEND_URL=http://localhost:5000
     ```
 
 3.  **Run the Executor service:**
@@ -179,3 +195,7 @@ This method requires you to run each service in a separate terminal.
     npm start
     ```
     The frontend development server will start, and you can access the application at `http://localhost:3000` (or the port specified in the terminal). Make sure the React app is pointing to the correct backend URL. You may need to modify the `REACT_APP_BACKEND_URL` in `frontend/package.json` or related files to point to `http://localhost:5000`.
+
+### Notes about Docker socket on Windows
+
+- The `executor` service uses the host Docker daemon (it mounts `/var/run/docker.sock`) so it can create runtime containers for code execution. On Windows this requires Docker Desktop with WSL2 backend or an equivalent setup that exposes the Docker socket. If you encounter socket permission/availability issues, you can build the language images locally using `docker build` from the `executor` folder, or run the `docker compose --profile builders build` command on a machine with a working Docker socket.

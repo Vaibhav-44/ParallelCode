@@ -2,7 +2,7 @@ const run = require("./_base");
 
 module.exports = (code) =>
   run({
-    image: "code-i-java",
+    image: "parallelcode-java",
     filename: "Main.java",
     code,
   });

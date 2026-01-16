@@ -6,7 +6,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_BACKEND_URL=http://backend:5000
+        - REACT_APP_BACKEND_URL=http://localhost:5000
     ports:
       - '3000:80'
     depends_on:
@@ -32,9 +32,66 @@ services:
     environment:
       - PORT=4000
       - EXECUTION_SECRET=change-me
+      - HOST_TEMP=${PWD}/executor/temp
     ports:
       - '4000:4000'
     # executor needs access to Docker daemon to create containers
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./temp:/app/temp
+      - ./executor/temp:/app/temp
+
+  # Language image build services: only included when running with the "builders" profile.
+  # They are omitted from normal `docker compose up -d --build`.
+  parallelcode-python:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/python.Dockerfile
+    image: parallelcode-python
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]
+
+  parallelcode-node:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/node.Dockerfile
+    image: parallelcode-node
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]
+
+  parallelcode-cpp:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/cpp.Dockerfile
+    image: parallelcode-cpp
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]
+
+  parallelcode-java:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/java.Dockerfile
+    image: parallelcode-java
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]
+
+  parallelcode-go:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/go.Dockerfile
+    image: parallelcode-go
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]
+
+  parallelcode-rust:
+    profiles: ['builders']
+    build:
+      context: ./executor
+      dockerfile: docker/rust.Dockerfile
+    image: parallelcode-rust
+    restart: "no"
+    command: ["sh", "-c", "exit 0"]

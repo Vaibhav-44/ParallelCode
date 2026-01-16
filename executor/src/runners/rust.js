@@ -1,4 +1,4 @@
 const run = require("./_base");
 
 module.exports = (code) =>
-  run({ image: "code-i-rust", filename: "main.rs", code });
+  run({ image: "parallelcode-rust", filename: "main.rs", code });

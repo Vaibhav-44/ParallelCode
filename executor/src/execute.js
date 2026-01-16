@@ -16,6 +16,6 @@ module.exports = async (req, res) => {
     res.json(await runner(code));
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: "Execution failed" });
+    res.status(500).json({ error: "Execution failed: " + e?.message });
   }
 };
